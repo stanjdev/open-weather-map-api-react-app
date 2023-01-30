@@ -1,5 +1,5 @@
 import DisplayWeather from './DisplayWeather.js';
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 const apikey = process.env.REACT_APP_OPENWEATHERMAP_API_KEY;
 
 export default function Weather() {
@@ -8,19 +8,26 @@ export default function Weather() {
   const [errorDisplay, setErrorDisplay] = useState('');
   const [weatherData, setWeatherData] = useState({});
 
-  async function getWeather(evt) {
+  function getWeather(evt) {
     evt.preventDefault();
     if (zipCode.length < 5 || isNaN(zipCode)) {
+      setWeatherData({});
       return setErrorDisplay('Zip Code must be 5 digits long, and only numbers!')
     } else {
       setErrorDisplay('')
     }
+    fetchWeather();
+  };
+
+  async function fetchWeather() {
     try {
       const res = await fetch(
         `https://api.openweathermap.org/data/2.5/weather?zip=${zipCode},us&appid=${apikey}&units=${tempUnit}`
       )
       const data = await res.json()
+      console.log(data);
       if (data.message) {
+        setWeatherData(data)
         return setErrorDisplay(data.message)
       } else {
         setErrorDisplay('')
@@ -30,7 +37,14 @@ export default function Weather() {
       console.error(err.message)
       return setErrorDisplay(err.message)
     }
-  };
+  }
+
+  useEffect(() => {
+    if (weatherData.name) {
+      fetchWeather();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tempUnit])
 
   return (
     <div>
